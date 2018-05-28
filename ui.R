@@ -14,6 +14,6 @@ shinyUI(
     tabPanel("About",
              mainPanel(helpText("Chromium based (e.g. Chrome or Opera) browsers are recommended, Microsoft Edge won't work.", br(), 
                                 "The uploaded files will only be stored temporary and will be deleted after the session is closed.", br(),
-                                tags$p("Source available",tags$a(href = "https://github.com/StaffanBetner/overlappingsegments", "here.")),br(),
+                             #   tags$p("Source available",tags$a(href = "https://github.com/StaffanBetner/overlappingsegments", "here.")),br(),
                                 "Contact: staffan@betner.nu or @StaffanBetner (Twitter)")))
   ))
