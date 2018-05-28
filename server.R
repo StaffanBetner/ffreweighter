@@ -1,5 +1,6 @@
 library(shiny)
 library(tidyverse)
+options(shiny.maxRequestSize=50*1024^2)
 calc_prob <- function(cM){(exp(-3.5+0.64*cM)/(1+exp(-3.5+0.64*cM))) %>% round(2)}
 
 shinyServer(function(input, output, session) {
