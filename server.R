@@ -25,23 +25,23 @@ shinyServer(function(input, output, session) {
       out <- inFile()$datapath %>% read_csv %>% unique %>% 
         mutate(new_cm = CENTIMORGANS*calc_prob(CENTIMORGANS)) %>% filter(CHROMOSOME != "X")
       
-      if(input$checkbox==T){densities <- out %>% 
-        mutate(mbp_start = round(`START LOCATION`/1000000),
-               mbp_end = round(`END LOCATION`/1000000),
-               values = Vectorize(interval)(x=mbp_start, y=mbp_end)) %>% 
-        unnest(values) %>% 
-        mutate(CHROMOSOME = CHROMOSOME %>% parse_number()) %>% 
-        full_join(chromosomal_max) %>% 
-        group_by(CHROMOSOME) %>% 
-        summarise(density = density(values, from = 0, to = unique(mbp_max)) %>% list)}
-      
-      if(input$checkbox==T){out <- out %>% 
-        mutate(mbp_start = round(`START LOCATION`/1000000),
-               mbp_end = round(`END LOCATION`/1000000),
-               CHROMOSOME = CHROMOSOME %>% parse_number()) %>% 
-        full_join(densities) %>% 
-        mutate(prob = 1-Vectorize(integrater)(density, mbp_start, mbp_end)) %>% select(-mbp_start, -mbp_end, -density) %>% 
-        mutate(new_cm = new_cm*prob)}
+     # if(input$checkbox==T){densities <- out %>% 
+     #   mutate(mbp_start = round(`START LOCATION`/1000000),
+     #          mbp_end = round(`END LOCATION`/1000000),
+     #          values = Vectorize(interval)(x=mbp_start, y=mbp_end)) %>% 
+     #   unnest(values) %>% 
+     #   mutate(CHROMOSOME = CHROMOSOME %>% parse_number()) %>% 
+     #   full_join(chromosomal_max) %>% 
+     #   group_by(CHROMOSOME) %>% 
+     #   summarise(density = density(values, from = 0, to = unique(mbp_max)) %>% list)}
+     # 
+     # if(input$checkbox==T){out <- out %>% 
+     #   mutate(mbp_start = round(`START LOCATION`/1000000),
+     #          mbp_end = round(`END LOCATION`/1000000),
+     #          CHROMOSOME = CHROMOSOME %>% parse_number()) %>% 
+     #   full_join(densities) %>% 
+     #   mutate(prob = 1-Vectorize(integrater)(density, mbp_start, mbp_end)) %>% select(-mbp_start, -mbp_end, -density) %>% 
+     #   mutate(new_cm = new_cm*prob)}
       out <- out %>% 
         group_by(MATCHNAME) %>% 
         summarise(`UNWEIGHTED SUM OF CENTIMORGANS` = sum(CENTIMORGANS) %>% round(2),
