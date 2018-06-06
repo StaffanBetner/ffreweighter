@@ -6,7 +6,9 @@ shinyUI(
       "Tool",
       sidebarPanel(
         fileInput('file', 'Upload one CSV File with Chromosome Browser Results (Max. Size 50 MB)',
-                  accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv'), multiple = F)
+                  accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv'), multiple = F),
+        checkboxInput("checkbox", "Experimental weighting of segments with excessive overlapping (slow)", value = FALSE, width = NULL),
+        helpText("Read the about page before use.")
       ),
       mainPanel(
         dataTableOutput("table")
