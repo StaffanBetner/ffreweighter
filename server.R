@@ -42,12 +42,21 @@ shinyServer(function(input, output, session) {
      #   full_join(densities) %>% 
      #   mutate(prob = 1-Vectorize(integrater)(density, mbp_start, mbp_end)) %>% select(-mbp_start, -mbp_end, -density) %>% 
      #   mutate(new_cm = new_cm*prob)}
+      segments_summary <- out %>% group_by(MATCHNAME) %>% summarise(`NUMBER OF SEGMENTS` = n())
       out <- out %>% 
         group_by(MATCHNAME) %>% 
         summarise(`UNWEIGHTED SUM OF CENTIMORGANS` = sum(CENTIMORGANS) %>% round(2),
                   `REWEIGHTED SUM OF CENTIMORGANS` = (sum(new_cm)-max(new_cm)+max(CENTIMORGANS)) %>% round(2),
                   `LONGEST SEGMENT` = max(CENTIMORGANS) %>% round(2)) %>% ungroup %>% arrange(desc(`REWEIGHTED SUM OF CENTIMORGANS`)) %>% 
-        ungroup() %>% mutate(SCALING = (`REWEIGHTED SUM OF CENTIMORGANS`/`UNWEIGHTED SUM OF CENTIMORGANS`) %>% round(3))
+        ungroup() %>% mutate(SCALING = (`REWEIGHTED SUM OF CENTIMORGANS`/`UNWEIGHTED SUM OF CENTIMORGANS`) %>% round(3)) %>% 
+        full_join(segments_summary) %>% mutate(`EFFECTIVE NUMBER OF SEGMENTS` = `NUMBER OF SEGMENTS`*SCALING) %>% 
+        select(MATCHNAME,
+          `UNWEIGHTED SUM OF CENTIMORGANS`,
+               `REWEIGHTED SUM OF CENTIMORGANS`,
+               `LONGEST SEGMENT`,
+               `NUMBER OF SEGMENTS`,
+               `EFFECTIVE NUMBER OF SEGMENTS`,
+               `SCALING`)
       
       
       #out <- out %>% 
