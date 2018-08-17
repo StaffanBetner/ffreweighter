@@ -1,15 +1,18 @@
 library(shiny)
 library(tidyverse)
+library(sparkline)
+library(DT)
 options(shiny.maxRequestSize=50*1024^2)
 calc_prob <- function(cM){(exp(-5.86584+0.78623*cM)/(1+exp(-5.86584+0.78623*cM))) %>% round(2)}
-interval <- function(x,y){x:y}
-integrater <- function(a,b,c){integrate(approxfun(a), lower=b, upper=c)$value}
+#interval <- function(x,y){x:y}
+#integrater <- function(a,b,c){integrate(approxfun(a), lower=b, upper=c)$value}
 
-chromosomal_max <- tibble(CHROMOSOME = (1:22), 
-                          mbp_max = c(247,243,199,191,181,171,159,146,140,135,134,132,114,106,100,89,79,76,64,62,47,50))
-
+#chromosomal_max <- tibble(CHROMOSOME = (1:22), 
+#                          mbp_max = c(247,243,199,191,181,171,159,146,140,135,134,132,114,106,100,89,79,76,64,62,47,50))
+probs_sparklines <- readRDS("probs_sparklines.RDS")
 shinyServer(function(input, output, session) {
-
+  cb <- htmlwidgets::JS('function(){debugger;HTMLWidgets.staticRender();}')
+  
   inFile <- reactive({
     if (is.null(input$file)) {
       return(NULL)
@@ -65,7 +68,10 @@ shinyServer(function(input, output, session) {
                `NUMBER OF SEGMENTS`,
                `EFFECTIVE NUMBER OF SEGMENTS`,
           `AVERAGE cM PER EFFECTIVE SEGMENT`,
-               `SCALING`)
+               `SCALING`) %>% 
+        mutate(cm = floor(`SUM OF >7 cM`)) %>% 
+        left_join(probs_sparklines) %>% 
+        select(-cm)
       
       
       #out <- out %>% 
@@ -80,6 +86,8 @@ shinyServer(function(input, output, session) {
   observe({
     output$table <- renderDataTable({ if (is.null(inFile())) {
       return(NULL)
-    } else {myData()}})})
+    } else {myData()}}, escape = F, options = list(
+      drawCallback =  cb
+    ))})
   
 })

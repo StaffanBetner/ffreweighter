@@ -10,7 +10,7 @@ shinyUI(
        # checkboxInput("checkbox", "Experimental weighting of segments with excessive overlapping (slow)", value = FALSE, width = NULL),
         helpText("Read the about page before use."), width = 2
       ),
-      mainPanel(
+      mainPanel(htmlwidgets::getDependency('sparkline'),
         dataTableOutput("table")
       )),
     tabPanel("About",
