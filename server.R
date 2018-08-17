@@ -22,8 +22,8 @@ shinyServer(function(input, output, session) {
     if (is.null(inFile())) {
       return(NULL)
     } else {
-      out <- inFile()$datapath %>% read_csv %>% unique %>% 
-        mutate(new_cm = CENTIMORGANS*calc_prob(CENTIMORGANS)) %>% filter(CHROMOSOME != "X")
+      #out <- inFile()$datapath %>% read_csv %>% unique %>% 
+      #  mutate(new_cm = CENTIMORGANS*calc_prob(CENTIMORGANS)) %>% filter(CHROMOSOME != "X")
       
      # if(input$checkbox==T){densities <- out %>% 
      #   mutate(mbp_start = round(`START LOCATION`/1000000),
@@ -42,20 +42,29 @@ shinyServer(function(input, output, session) {
      #   full_join(densities) %>% 
      #   mutate(prob = 1-Vectorize(integrater)(density, mbp_start, mbp_end)) %>% select(-mbp_start, -mbp_end, -density) %>% 
      #   mutate(new_cm = new_cm*prob)}
-      segments_summary <- out %>% group_by(MATCHNAME) %>% summarise(`NUMBER OF SEGMENTS` = n())
-      out <- out %>% 
-        group_by(MATCHNAME) %>% 
+     # segments_summary <- out %>% group_by(MATCHNAME) %>% summarise(`NUMBER OF SEGMENTS` = n())
+      out <- inFile()$datapath %>% read_csv %>% unique %>% 
+        mutate(new_cm = CENTIMORGANS*calc_prob(CENTIMORGANS)) %>% filter(CHROMOSOME != "X") %>% 
+        group_by(MATCHNAME) %>% mutate(`NUMBER OF SEGMENTS` = n()) %>% ungroup() %>% 
+        group_by(MATCHNAME, `NUMBER OF SEGMENTS`) %>% 
+        mutate(boolean = CENTIMORGANS>7) %>% 
         summarise(`UNWEIGHTED SUM OF CENTIMORGANS` = sum(CENTIMORGANS) %>% round(2),
                   `REWEIGHTED SUM OF CENTIMORGANS` = (sum(new_cm)-max(new_cm)+max(CENTIMORGANS)) %>% round(2),
-                  `LONGEST SEGMENT` = max(CENTIMORGANS) %>% round(2)) %>% ungroup %>% arrange(desc(`REWEIGHTED SUM OF CENTIMORGANS`)) %>% 
+                  `LONGEST SEGMENT` = max(CENTIMORGANS) %>% round(2),
+                  `SUM OF >7 cM` = sum(CENTIMORGANS*boolean)) %>% 
+        ungroup %>% arrange(desc(`REWEIGHTED SUM OF CENTIMORGANS`)) %>% 
         ungroup() %>% mutate(SCALING = (`REWEIGHTED SUM OF CENTIMORGANS`/`UNWEIGHTED SUM OF CENTIMORGANS`) %>% round(3)) %>% 
-        full_join(segments_summary) %>% mutate(`EFFECTIVE NUMBER OF SEGMENTS` = `NUMBER OF SEGMENTS`*SCALING) %>% 
+       # full_join(segments_summary) %>% 
+        mutate(`EFFECTIVE NUMBER OF SEGMENTS` = `NUMBER OF SEGMENTS`*SCALING,
+               `AVERAGE cM PER EFFECTIVE SEGMENT` = (`REWEIGHTED SUM OF CENTIMORGANS`/`EFFECTIVE NUMBER OF SEGMENTS`) %>% round(3)) %>% 
         select(MATCHNAME,
           `UNWEIGHTED SUM OF CENTIMORGANS`,
                `REWEIGHTED SUM OF CENTIMORGANS`,
+          `SUM OF >7 cM`,
                `LONGEST SEGMENT`,
                `NUMBER OF SEGMENTS`,
                `EFFECTIVE NUMBER OF SEGMENTS`,
+          `AVERAGE cM PER EFFECTIVE SEGMENT`,
                `SCALING`)
       
       
