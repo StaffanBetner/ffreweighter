@@ -1,4 +1,5 @@
 library(shiny)
+library(sparkline)
 shinyUI(
   navbarPage(
     "Reweighter of Family Finder Matches List",

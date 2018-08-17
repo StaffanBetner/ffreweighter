@@ -1,7 +1,7 @@
 library(shiny)
 library(tidyverse)
 library(sparkline)
-library(DT)
+#library(DT)
 options(shiny.maxRequestSize=50*1024^2)
 calc_prob <- function(cM){(exp(-5.86584+0.78623*cM)/(1+exp(-5.86584+0.78623*cM))) %>% round(2)}
 #interval <- function(x,y){x:y}
