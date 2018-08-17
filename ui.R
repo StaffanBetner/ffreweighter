@@ -5,10 +5,10 @@ shinyUI(
     tabPanel(
       "Tool",
       sidebarPanel(
-        fileInput('file', 'Upload one CSV File with Chromosome Browser Results (Max. Size 50 MB)',
-                  accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv'), multiple = F),
+        fileInput('file', HTML("Upload one CSV File with<br />Chromosome Browser Results<br />(Max. Size 50 MB)"),
+                  accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv'), multiple = F, width = '95%'),
        # checkboxInput("checkbox", "Experimental weighting of segments with excessive overlapping (slow)", value = FALSE, width = NULL),
-        helpText("Read the about page before use.")
+        helpText("Read the about page before use."), width = 2
       ),
       mainPanel(
         dataTableOutput("table")
@@ -20,3 +20,5 @@ shinyUI(
                              #   tags$p("Source available",tags$a(href = "https://github.com/StaffanBetner/overlappingsegments", "here.")),br(),
                                 "Contact: staffan@betner.nu or @StaffanBetner (Twitter)")))
   ))
+
+#
