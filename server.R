@@ -47,7 +47,15 @@ shinyServer(function(input, output, session) {
      #   mutate(prob = 1-Vectorize(integrater)(density, mbp_start, mbp_end)) %>% select(-mbp_start, -mbp_end, -density) %>% 
      #   mutate(new_cm = new_cm*prob)}
      # segments_summary <- out %>% group_by(MATCHNAME) %>% summarise(`NUMBER OF SEGMENTS` = n())
-      out <- inFile()$datapath %>% read_csv %>% unique %>% 
+      out <- inFile()$datapath %>%read_delim(delim = ",", quote = "")  %>% unique %>% 
+        mutate(`Match Name` = `Match Name` %>% gsub('[\"]', "",x = .)) %>% 
+        rename(NAME = Name,
+               MATCHNAME = `Match Name`,
+               CHROMOSOME = Chromosome,
+               `START LOCATION` = `Start Location`,
+               `END LOCATION` = `End Location`,
+               CENTIMORGANS = Centimorgans,
+               `MATCHING SNPS` = `Matching SNPs`) %>% 
         mutate(new_cm = CENTIMORGANS*calc_prob(CENTIMORGANS)) %>% filter(CHROMOSOME != "X") %>% 
         group_by(MATCHNAME) %>% mutate(`NUMBER OF SEGMENTS` = n()) %>% ungroup() %>% 
         group_by(MATCHNAME, `NUMBER OF SEGMENTS`) %>% 
