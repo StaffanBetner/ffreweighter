@@ -12,9 +12,8 @@ calc_prob <- function(cM){(exp(-5.86584+0.78623*cM)/(1+exp(-5.86584+0.78623*cM))
 #                          mbp_max = c(247,243,199,191,181,171,159,146,140,135,134,132,114,106,100,89,79,76,64,62,47,50))
 probs_sparklines <- readRDS("probs_sparklines.RDS")
 shinyServer(function(input, output, session) {
- # cb <- JS('function(){HTMLWidgets.staticRender()}')
-  
-  inFile <- reactive({
+
+    inFile <- reactive({
     if (is.null(input$file)) {
       return(NULL)
     } else {
@@ -47,7 +46,19 @@ shinyServer(function(input, output, session) {
      #   mutate(prob = 1-Vectorize(integrater)(density, mbp_start, mbp_end)) %>% select(-mbp_start, -mbp_end, -density) %>% 
      #   mutate(new_cm = new_cm*prob)}
      # segments_summary <- out %>% group_by(MATCHNAME) %>% summarise(`NUMBER OF SEGMENTS` = n())
-      out <- inFile()$datapath %>%read_delim(delim = ",", quote = "")  %>% unique %>% 
+      out <- inFile()$datapath %>% 
+        read_delim(delim = ",", 
+                   quote = "", 
+                   col_types = cols(
+                     Name = col_character(),
+                     `Match Name` = col_character(),
+                     Chromosome = col_character(),
+                     `Start Location` = col_integer(),
+                     `End Location` = col_integer(),
+                     Centimorgans = col_double(),
+                     `Matching SNPs` = col_integer()
+                   ), trim_ws = T)  %>% 
+        unique %>% 
         mutate(`Match Name` = `Match Name` %>% gsub('[\"]', "",x = .)) %>% 
         rename(NAME = Name,
                MATCHNAME = `Match Name`,
@@ -57,6 +68,7 @@ shinyServer(function(input, output, session) {
                CENTIMORGANS = Centimorgans,
                `MATCHING SNPS` = `Matching SNPs`) %>% 
         mutate(new_cm = CENTIMORGANS*calc_prob(CENTIMORGANS)) %>% filter(CHROMOSOME != "X") %>% 
+       # mutate(CHROMOSOME = CHROMOSOME %>% parse_number()) %>% 
         group_by(MATCHNAME) %>% mutate(`NUMBER OF SEGMENTS` = n()) %>% ungroup() %>% 
         group_by(MATCHNAME, `NUMBER OF SEGMENTS`) %>% 
         mutate(boolean = CENTIMORGANS>7) %>% 
@@ -77,10 +89,10 @@ shinyServer(function(input, output, session) {
                `NUMBER OF SEGMENTS`,
                `EFFECTIVE NUMBER OF SEGMENTS`,
           `AVERAGE cM PER EFFECTIVE SEGMENT`,
-               `SCALING`) #%>% 
-       # mutate(cm = floor(`SUM OF >7 cM`)) #%>% 
-        #left_join(probs_sparklines) %>% 
-        #select(-cm)
+               `SCALING`) %>% 
+        mutate(cm = floor(`SUM OF >7 cM`)) %>% 
+      #  left_join(probs_sparklines) %>% 
+        select(-cm)
       
       
       #out <- out %>% 
@@ -95,7 +107,8 @@ shinyServer(function(input, output, session) {
   observe({
     output$table <- renderDataTable({ if (is.null(inFile())) {
       return(NULL)
-    } else {myData()}}, escape = F#, options = list(drawCallback =  cb)
+    } else {myData()}}, escape = F#, options = list(drawCallback =  JS('function(){HTMLWidgets.staticRender()}'))#, 
+  #  callback =  JS('function(){HTMLWidgets.staticRender()}')
     )})
   
 })
