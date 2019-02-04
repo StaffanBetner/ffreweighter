@@ -76,7 +76,7 @@ shinyServer(function(input, output, session) {
                   `REWEIGHTED SUM OF CENTIMORGANS` = (sum(new_cm)-max(new_cm)+max(CENTIMORGANS)) %>% round(2),
                   `LONGEST SEGMENT` = max(CENTIMORGANS) %>% round(2),
                   `SUM OF >7 cM` = sum(CENTIMORGANS*boolean)) %>% 
-        ungroup %>% arrange(desc(`REWEIGHTED SUM OF CENTIMORGANS`)) %>% 
+        ungroup %>% 
         ungroup() %>% mutate(SCALING = (`REWEIGHTED SUM OF CENTIMORGANS`/`UNWEIGHTED SUM OF CENTIMORGANS`) %>% round(3)) %>% 
        # full_join(segments_summary) %>% 
         mutate(`EFFECTIVE NUMBER OF SEGMENTS` = `NUMBER OF SEGMENTS`*SCALING,
@@ -92,8 +92,13 @@ shinyServer(function(input, output, session) {
                `SCALING`) %>% 
         mutate(cm = floor(`SUM OF >7 cM`)) %>% 
       #  left_join(probs_sparklines) %>% 
-        select(-cm)
+        select(-cm) %>% 
+        arrange(desc(`UNWEIGHTED SUM OF CENTIMORGANS`)) %>% 
+        mutate(`# (FTDNA)` = row_number()) %>% 
+        select(`# (FTDNA)`, everything()) %>% 
+        arrange(desc(`REWEIGHTED SUM OF CENTIMORGANS`))
       
+      if(input$anonymize == T){out <- out %>% select(-MATCHNAME)}
       
       #out <- out %>% 
       #  group_by(MATCHNAME) %>% 
@@ -103,6 +108,16 @@ shinyServer(function(input, output, session) {
       #  ungroup() %>% mutate(SCALING = (`REWEIGHTED SUM OF CENTIMORGANS`/`UNWEIGHTED SUM OF CENTIMORGANS`) %>% round(3))
       out}
   })
+  
+  output$downloadData_xlsx <- downloadHandler(
+    filename="reweighted matching list.xlsx", 
+    content = function(file){
+      openxlsx::write.xlsx(myData(), 
+                       file, 
+          #             sheetName = "Match list", 
+                       row.names = FALSE)
+    }
+  )
   
   observe({
     output$table <- renderDataTable({ if (is.null(inFile())) {

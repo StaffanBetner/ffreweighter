@@ -9,6 +9,8 @@ shinyUI(
       sidebarPanel(
         fileInput('file', HTML("Upload one CSV File with<br />Chromosome Browser Results<br />(Max. Size 50 MB)"),
                   accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv'), multiple = F, width = '95%'),
+        checkboxInput("anonymize", "Hide names of matches", value = FALSE),
+        downloadButton("downloadData_xlsx", "Download output (.xlsx)"),
        # checkboxInput("checkbox", "Experimental weighting of segments with excessive overlapping (slow)", value = FALSE, width = NULL),
         helpText("Read the about page before use."), width = 2
       ),
