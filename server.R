@@ -1,9 +1,10 @@
-library(shiny)
-library(tidyverse)
-library(htmlwidgets)
-library(data.table)
-library(dtplyr)
-library(rio)
+if(!require(pacman)){install.packages("pacman")}
+p_load(shiny)
+p_load(tidyverse)
+p_load(htmlwidgets)
+p_load(data.table)
+p_load(dtplyr)
+p_load(rio)
 
 options(shiny.maxRequestSize = 50*1024^2)
 
