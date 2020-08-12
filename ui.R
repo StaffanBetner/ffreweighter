@@ -20,7 +20,7 @@ shinyUI(
              mainPanel(helpText("The tool weights each segment after the probability that it is a identical by descent (IBD) segment. The segments are summed up for each match name, so for several matches with the same name, those will be combined.",br(),
                "Chromium based (e.g. Chrome or Opera) browsers are recommended, Microsoft Edge is not supported.", br(), 
                                 "The uploaded files will only be stored temporary and will be deleted after the session is closed.", br(),
-                             #   tags$p("Source available",tags$a(href = "https://github.com/StaffanBetner/overlappingsegments", "here.")),br(),
+                                tags$p("Source available",tags$a(href = "https://github.com/StaffanBetner/ffreweighter/", "here.")),br(),
                                 "Contact: staffan@betner.nu or @StaffanBetner (Twitter)")))
   ))
 
