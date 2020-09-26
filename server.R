@@ -1,9 +1,4 @@
-library(shiny)
-library(tidyverse)
-library(htmlwidgets)
-library(data.table)
-library(dtplyr)
-library(rio)
+pacman::p_load(shiny, tidyverse, htmlwidgets, data.table, dtplyr, rio)
 
 options(shiny.maxRequestSize = 50*1024^2)
 
@@ -76,7 +71,16 @@ shinyServer(function(input, output, session) {
   observe({
     output$table <- renderDataTable({if (is.null(inFile())) {
       return(NULL)
-    } else {myData()}}, escape = F, 
+    } else {DT::datatable(
+      myData(),
+      filter = 'top', extensions = c('Buttons', 'Scroller'),
+      options = list(scrollY = 650,
+                     scrollX = 500,
+                     deferRender = TRUE,
+                     scroller = TRUE,
+                     buttons = list('excel', "csv"),
+                     dom = 'lBfrtip',
+                     fixedColumns = TRUE))}}#, escape = F, 
     )})
   
 })
