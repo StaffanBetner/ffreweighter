@@ -59,20 +59,20 @@ shinyServer(function(input, output, session) {
       out}
   })
   
-  output$downloadData_xlsx <- downloadHandler(
-    filename = "reweighted matching list.xlsx", 
-    content = function(file){
-      openxlsx::write.xlsx(myData(), 
-                       file, 
-                       row.names = FALSE)
-    }
-  )
+ # output$downloadData_xlsx <- downloadHandler(
+ #   filename = "reweighted matching list.xlsx", 
+ #   content = function(file){
+ #     openxlsx::write.xlsx(myData(), 
+ #                      file, 
+ #                      row.names = FALSE)
+ #   }
+ # )
   
   observe({
     output$table <- renderDataTable({if (is.null(inFile())) {
       return(NULL)
     } else {DT::datatable(
-      myData(),
+      myData(), rownames = FALSE,
       filter = 'top', extensions = c('Buttons', 'Scroller'),
       options = list(scrollY = 650,
                      scrollX = 500,
