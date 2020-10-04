@@ -32,13 +32,19 @@ shinyServer(function(input, output, session) {
         as.data.table() -> step1
       
       setkey(step1, chromosome, start_location, end_location)
-      
+      #olaps = 
       step1 %>% 
-        nest_by.(match_name) %>% 
+        nest_by.(match_name, chromosome) %>% 
         lazy_dt() %>% 
-        group_by(match_name) %>% 
-        mutate(olaps = map(data, ~foverlaps(.x, .x, type="any", which = TRUE) %>% 
-                             lazy_dt() %>% filter(xid != yid) %>% as.data.table() %>% nrow)) %>% 
+        group_by(match_name, chromosome) %>% 
+        mutate(nrow = map_dbl(data, ~nrow(.x))) %>% 
+        as.data.table() %>% 
+        filter.(nrow != 1)
+        mutate(olaps = map(data, ~ifelse(test = nrow(.x) == 1, 
+                                         yes = 0, 
+                                         no = {setkey(.x, start_location, end_location)
+                                         foverlaps(.x, .x, type="any", which = TRUE) %>% 
+                                           lazy_dt() %>% filter(xid != yid) %>% as.data.table() %>% nrow}))) %>% 
         as.data.table() %>% 
         unnest.(olaps, .keep_all = TRUE) %>% 
         lazy_dt() %>% 
@@ -48,12 +54,13 @@ shinyServer(function(input, output, session) {
         unnest.(data) %>% 
         as.data.table() %>% 
         lazy_dt() %>% 
-        group_by(match_name, overlaps) %>% 
+        group_by(match_name) %>% 
         summarise(number_of_segments = n(),
                   unweighted_sum_of_centimorgans = sum(centimorgans),
                   reweighted_sum_of_centimorgans = (sum(new_cm) - max(new_cm) + max(centimorgans)),
                   longest_segment = max(centimorgans),
-                  `sum_of_>7_cM` = sum(centimorgans*boolean)) %>% 
+                  `sum_of_>7_cM` = sum(centimorgans*boolean),
+                  overlaps = max(overlaps)) %>% 
         ungroup() %>% 
         mutate(scale_factor = (reweighted_sum_of_centimorgans/unweighted_sum_of_centimorgans),
                effective_number_of_segments = number_of_segments*scale_factor,
