@@ -39,11 +39,12 @@ shinyServer(function(input, output, session) {
       
       step1 %>% 
         lazy_dt() %>% 
-        group_by(match_name, overlaps) %>% 
+        group_by(match_name) %>% 
         summarise(number_of_segments = n(),
                   unweighted_sum_of_centimorgans = sum(centimorgans),
                   reweighted_sum_of_centimorgans = (sum(new_cm) - max(new_cm) + max(centimorgans)),
                   longest_segment = max(centimorgans),
+                  overlaps = as.logical(max(overlaps)),
                   `sum_of_>7_cM` = sum(centimorgans*boolean)) %>% 
         ungroup() %>% 
         mutate(scale_factor = (reweighted_sum_of_centimorgans/unweighted_sum_of_centimorgans),
