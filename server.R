@@ -1,4 +1,4 @@
-pacman::p_load(shiny, tidyverse, htmlwidgets, data.table, dtplyr, rio)
+pacman::p_load(shiny, tidyverse, htmlwidgets, data.table, dtplyr, rio, tidytable, shinycssloaders)
 
 options(shiny.maxRequestSize = 50*1024^2)
 
@@ -28,8 +28,27 @@ shinyServer(function(input, output, session) {
         filter(chromosome != "X") %>% 
         mutate(new_cm = centimorgans*plogis(-5.86584 + 0.78623*centimorgans),
                chromosome = chromosome %>% parse_number(),
-               boolean = centimorgans > 7) %>%  
+               boolean = centimorgans > 7) %>% 
+        as.data.table() -> step1
+      
+      setkey(step1, chromosome, start_location, end_location)
+      
+      step1 %>% 
+        nest_by.(match_name) %>% 
+        lazy_dt() %>% 
         group_by(match_name) %>% 
+        mutate(olaps = map(data, ~foverlaps(.x, .x, type="any", which = TRUE) %>% 
+                             lazy_dt() %>% filter(xid != yid) %>% as.data.table() %>% nrow)) %>% 
+        as.data.table() %>% 
+        unnest.(olaps, .keep_all = TRUE) %>% 
+        lazy_dt() %>% 
+        mutate(overlaps = olaps > 0) %>% 
+        select(-olaps) %>% 
+        as.data.table() %>% 
+        unnest.(data) %>% 
+        as.data.table() %>% 
+        lazy_dt() %>% 
+        group_by(match_name, overlaps) %>% 
         summarise(number_of_segments = n(),
                   unweighted_sum_of_centimorgans = sum(centimorgans),
                   reweighted_sum_of_centimorgans = (sum(new_cm) - max(new_cm) + max(centimorgans)),
@@ -42,6 +61,7 @@ shinyServer(function(input, output, session) {
         arrange(desc(unweighted_sum_of_centimorgans)) %>% 
         transmute(`# (FTDNA)` = row_number(),
                   `MATCH NAME` = match_name,
+                  `OVERLAPPING SEGMENTS WITHIN NAME` = overlaps, 
                   `UNWEIGHTED SUM OF CENTIMORGANS` = round(unweighted_sum_of_centimorgans, 2),
                   `REWEIGHTED SUM OF CENTIMORGANS` = round(reweighted_sum_of_centimorgans, 2),
                   `SUM OF >7 cM` = round(`sum_of_>7_cM`, 2),
