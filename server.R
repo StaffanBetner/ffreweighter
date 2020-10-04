@@ -3,8 +3,8 @@ pacman::p_load(shiny, tidyverse, htmlwidgets, data.table, dtplyr, rio, tidytable
 options(shiny.maxRequestSize = 50*1024^2)
 
 shinyServer(function(input, output, session) {
-
-    inFile <- reactive({
+  
+  inFile <- reactive({
     if (is.null(input$file)) {
       return(NULL)
     } else {
@@ -16,7 +16,7 @@ shinyServer(function(input, output, session) {
     if (is.null(inFile())) {
       return(NULL)
     } else {
-        inFile()$datapath  %>% 
+      inFile()$datapath  %>% 
         import(encoding = "UTF-8", quote = "", setclass = "data.table") %>% 
         lazy_dt() %>% 
         transmute(name = Name,
@@ -32,19 +32,13 @@ shinyServer(function(input, output, session) {
         as.data.table() -> step1
       
       setkey(step1, chromosome, start_location, end_location)
-      #olaps = 
+      
       step1 %>% 
-        nest_by.(match_name, chromosome) %>% 
+        nest_by.(match_name) %>% 
         lazy_dt() %>% 
-        group_by(match_name, chromosome) %>% 
-        mutate(nrow = map_dbl(data, ~nrow(.x))) %>% 
-        as.data.table() %>% 
-        filter.(nrow != 1)
-        mutate(olaps = map(data, ~ifelse(test = nrow(.x) == 1, 
-                                         yes = 0, 
-                                         no = {setkey(.x, start_location, end_location)
-                                         foverlaps(.x, .x, type="any", which = TRUE) %>% 
-                                           lazy_dt() %>% filter(xid != yid) %>% as.data.table() %>% nrow}))) %>% 
+        group_by(match_name) %>% 
+        mutate(olaps = map(data, ~foverlaps(.x, .x, type="any", which = TRUE) %>% 
+                             lazy_dt() %>% filter(xid != yid) %>% as.data.table() %>% nrow)) %>% 
         as.data.table() %>% 
         unnest.(olaps, .keep_all = TRUE) %>% 
         lazy_dt() %>% 
@@ -54,13 +48,12 @@ shinyServer(function(input, output, session) {
         unnest.(data) %>% 
         as.data.table() %>% 
         lazy_dt() %>% 
-        group_by(match_name) %>% 
+        group_by(match_name, overlaps) %>% 
         summarise(number_of_segments = n(),
                   unweighted_sum_of_centimorgans = sum(centimorgans),
                   reweighted_sum_of_centimorgans = (sum(new_cm) - max(new_cm) + max(centimorgans)),
                   longest_segment = max(centimorgans),
-                  `sum_of_>7_cM` = sum(centimorgans*boolean),
-                  overlaps = max(overlaps)) %>% 
+                  `sum_of_>7_cM` = sum(centimorgans*boolean)) %>% 
         ungroup() %>% 
         mutate(scale_factor = (reweighted_sum_of_centimorgans/unweighted_sum_of_centimorgans),
                effective_number_of_segments = number_of_segments*scale_factor,
@@ -79,21 +72,21 @@ shinyServer(function(input, output, session) {
                   `SCALE FACTOR (%)` = (scale_factor*100) %>% round(2)) %>% 
         arrange(desc(`REWEIGHTED SUM OF CENTIMORGANS`)) %>% 
         as.data.table() ->
-          out
+        out
       
       if (input$anonymize == T) {out %>% lazy_dt() %>% select(-`MATCH NAME`) %>% as.data.table() -> out}
       
       out}
   })
   
- # output$downloadData_xlsx <- downloadHandler(
- #   filename = "reweighted matching list.xlsx", 
- #   content = function(file){
- #     openxlsx::write.xlsx(myData(), 
- #                      file, 
- #                      row.names = FALSE)
- #   }
- # )
+  # output$downloadData_xlsx <- downloadHandler(
+  #   filename = "reweighted matching list.xlsx", 
+  #   content = function(file){
+  #     openxlsx::write.xlsx(myData(), 
+  #                      file, 
+  #                      row.names = FALSE)
+  #   }
+  # )
   
   observe({
     output$table <- renderDataTable({if (is.null(inFile())) {
