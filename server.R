@@ -31,22 +31,13 @@ shinyServer(function(input, output, session) {
                boolean = centimorgans > 7) %>% 
         as.data.table() -> step1
       
-      setkey(step1, chromosome, start_location, end_location)
+      setkey(step1, match_name, chromosome, start_location, end_location)
+      
+      overlaps = foverlaps(step1, step1, type="any", which = TRUE)[xid != yid]$xid
+      step1$overlaps <- FALSE
+      step1$overlaps[overlaps] <- TRUE
       
       step1 %>% 
-        nest_by.(match_name) %>% 
-        lazy_dt() %>% 
-        group_by(match_name) %>% 
-        mutate(olaps = map(data, ~foverlaps(.x, .x, type="any", which = TRUE) %>% 
-                             lazy_dt() %>% filter(xid != yid) %>% as.data.table() %>% nrow)) %>% 
-        as.data.table() %>% 
-        unnest.(olaps, .keep_all = TRUE) %>% 
-        lazy_dt() %>% 
-        mutate(overlaps = olaps > 0) %>% 
-        select(-olaps) %>% 
-        as.data.table() %>% 
-        unnest.(data) %>% 
-        as.data.table() %>% 
         lazy_dt() %>% 
         group_by(match_name, overlaps) %>% 
         summarise(number_of_segments = n(),
