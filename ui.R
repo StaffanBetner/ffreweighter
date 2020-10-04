@@ -5,7 +5,7 @@ dashboardPage(
                              accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv'), multiple = F, width = '95%'),
                    checkboxInput("anonymize", "Hide names of matches", value = FALSE),
                    helpText("The tool weights each segment by the probability that it is a identical by descent (IBD) segment. The segments are summed up for each match name, so several matches with the same name will be combined." ,
-                            "If any segments within a match name overlaps with another segment in the same name set, \"overlapping segments within name\" will be set as \"true\"",
+                            "If any segments within a match name overlaps with another segment in the same name set, \"overlapping segments within name\" will be set as \"true\". That comparison takes some time.",
                            # "However, if you also upload a matches list, then the segments will be allocated so that the sum will check out. There might be errors in smaller segment however.",
                             br(),
                            br(),
