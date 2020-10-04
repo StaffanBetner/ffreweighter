@@ -50,7 +50,7 @@ shinyServer(function(input, output, session) {
                effective_number_of_segments = number_of_segments*scale_factor,
                average_cM_per_effective_segment = (reweighted_sum_of_centimorgans/effective_number_of_segments)) %>% 
         arrange(desc(unweighted_sum_of_centimorgans)) %>% 
-        transmute(`# (FTDNA)` = row_number(),
+        transmute(`# (by shared cM at FTDNA)` = row_number(),
                   `MATCH NAME` = match_name,
                   `OVERLAPPING SEGMENTS WITHIN NAME` = overlaps, 
                   `UNWEIGHTED SUM OF CENTIMORGANS` = round(unweighted_sum_of_centimorgans, 2),
