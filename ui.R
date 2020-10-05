@@ -13,7 +13,7 @@ dashboardPage(
                             br(), 
                            br(),
                             "The uploaded files will only be stored temporary and will be deleted after the session is closed.", br(),
-                            tags$p("Source available",tags$a(href = "https://github.com/StaffanBetner/ffreweighter/", "here.")),br(),
+                            tags$p("Source code available",tags$a(href = "https://github.com/StaffanBetner/ffreweighter/", "here.")),br(),
                             "Contact: staffan@betner.nu or @StaffanBetner (Twitter)"),
                    width = 350),
   dashboardBody(DTOutput("table") %>% withSpinner()))
